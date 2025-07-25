@@ -1,0 +1,9 @@
+[profile.default]
+src = "contracts"
+
+[fmt]
+tab_width = 4
+line_length = 80
+bracket_spacing = true
+multiline_func_header = "all"
+single_line_statement_blocks = "multi"
