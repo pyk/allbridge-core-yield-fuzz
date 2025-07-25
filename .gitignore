@@ -1,0 +1,15 @@
+# foundry
+cache
+out
+
+# macos
+.DS_Store
+
+# repomix
+repomix-*.xml
+
+# medusa
+corpus
+crytic-export
+slither_results.json
+call-trace.txt
