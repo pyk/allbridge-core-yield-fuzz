@@ -1,1 +1,2 @@
 @openzeppelin/=externals/@openzeppelin/
+@allbridge-core/=externals/@allbridge-core/

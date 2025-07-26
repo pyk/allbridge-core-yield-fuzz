@@ -21,12 +21,14 @@ contract PortfolioTokenWithdraw is Test {
 
     struct Params {
         address user;
+        uint256 userVirtualBalance;
         uint256 virtualAmount;
     }
 
     function debug(Params memory params) internal view {
         console.log("* ===== %s =====", "PortfolioTokenWithdraw");
         console.log("* user=%s", context.getLabel(params.user));
+        console.log("* userVirtualBalance=%d", params.userVirtualBalance);
         console.log("* virtualAmount=%d", params.virtualAmount);
         console.log("* cyd.totalSupply=%d", cyd.totalSupply());
     }
@@ -37,8 +39,9 @@ contract PortfolioTokenWithdraw is Test {
         returns (Params memory params)
     {
         params.user = context.getRandomUser(fuzz.userId);
+        params.userVirtualBalance = cyd.balanceOf(params.user);
         params.virtualAmount =
-            bound(fuzz.virtualAmount, 0, cyd.balanceOf(params.user));
+            bound(fuzz.virtualAmount, 0, params.userVirtualBalance);
     }
 
     function skip(Params memory params) internal view returns (bool) {

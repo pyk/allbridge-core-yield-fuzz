@@ -41,7 +41,11 @@ contract PortfolioTokenDeposit is Test {
     {
         params.pool = context.getRandomPool(fuzz.poolId);
         params.user = context.getRandomUser(fuzz.userId);
-        params.amount = bound(fuzz.amount, 1, params.pool.maxDepositAmount);
+        params.amount = bound(
+            fuzz.amount,
+            params.pool.minDepositAmount,
+            params.pool.maxDepositAmount
+        );
     }
 
     function skip(Params memory params) internal view returns (bool) {

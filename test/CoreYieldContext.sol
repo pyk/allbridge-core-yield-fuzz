@@ -1,17 +1,20 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import { Pool as PoolMock } from "@allbridge-core/contracts/Pool.sol";
+
 import { ContextProvider } from "./ContextProvider.sol";
 
 import { AssetMock } from "./mocks/AssetMock.sol";
-import { PoolMock } from "./mocks/PoolMock.sol";
 
 import { PortfolioToken } from "../contracts/PortfolioToken.sol";
+import { IPool } from "../contracts/interfaces/IPool.sol";
 
 struct Pool {
     PoolMock pool;
     AssetMock asset;
     uint256 index;
+    uint256 minDepositAmount;
     uint256 maxDepositAmount;
 }
 
@@ -31,7 +34,8 @@ contract CoreYieldContext is ContextProvider {
                 name: "USDT",
                 decimals: 6,
                 index: 0,
-                maxDepositAmount: 1_000_000 * 1e6
+                maxDepositAmount: 1_000_000 * 1e6,
+                minDepositAmount: 10 * 1e6
             })
         );
         // pools[1] = deployPool(
@@ -46,7 +50,7 @@ contract CoreYieldContext is ContextProvider {
 
         for (uint256 i = 0; i < pools.length; i++) {
             Pool memory pool = pools[i];
-            portfolioToken.setPool(pool.index, pool.pool);
+            portfolioToken.setPool(pool.index, IPool(address(pool.pool)));
         }
     }
 
@@ -58,6 +62,7 @@ contract CoreYieldContext is ContextProvider {
         string name;
         uint8 decimals;
         uint256 index;
+        uint256 minDepositAmount;
         uint256 maxDepositAmount;
     }
 
@@ -66,8 +71,17 @@ contract CoreYieldContext is ContextProvider {
         returns (Pool memory pool)
     {
         pool.asset = new AssetMock(params.name, params.name, params.decimals);
-        pool.pool = new PoolMock(pool.asset);
+        pool.pool = new PoolMock({
+            router_: address(this),
+            a_: 20,
+            token_: pool.asset,
+            feeShareBP_: 30,
+            balanceRatioMinBP_: 500,
+            lpName: "Allbridge LP",
+            lpSymbol: string.concat("LP-", params.name)
+        });
         pool.index = params.index;
+        pool.minDepositAmount = params.minDepositAmount;
         pool.maxDepositAmount = params.maxDepositAmount;
 
         label(address(pool.asset), params.name);

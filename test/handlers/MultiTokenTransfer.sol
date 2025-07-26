@@ -46,10 +46,17 @@ contract MultiTokenTransfer is Test {
         } else {
             params.to = fuzz.to;
         }
-        params.amount = bound(fuzz.amount, 1, cyd.balanceOf(params.from));
+
+        uint256 balance = cyd.balanceOf(params.from);
+        if (balance > 0) {
+            params.amount = bound(fuzz.amount, 1, balance);
+        }
     }
 
     function skip(Params memory params) internal view returns (bool) {
+        if (params.amount == 0) {
+            return true;
+        }
         if (params.to == address(0)) {
             return true;
         }
