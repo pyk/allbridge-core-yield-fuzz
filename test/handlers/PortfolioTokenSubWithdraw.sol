@@ -23,6 +23,7 @@ contract PortfolioTokenSubWithdraw is Test {
     struct Params {
         Pool pool;
         address user;
+        uint256 userVirtualBalance;
         uint256 virtualAmount;
     }
 
@@ -31,6 +32,7 @@ contract PortfolioTokenSubWithdraw is Test {
         console.log("* poolIndex=%d", params.pool.index);
         console.log("* pool=%s", context.getLabel(address(params.pool.pool)));
         console.log("* user=%s", context.getLabel(params.user));
+        console.log("* userVirtualBalance=%d", params.userVirtualBalance);
         console.log("* virtualAmount=%d", params.virtualAmount);
     }
 
@@ -41,8 +43,12 @@ contract PortfolioTokenSubWithdraw is Test {
     {
         params.pool = context.getRandomPool(fuzz.poolId);
         params.user = context.getRandomUser(fuzz.userId);
-        params.virtualAmount =
-            bound(fuzz.virtualAmount, 0, cyd.balanceOf(params.user));
+        uint256 minWithdraw = 1e3; // 1 CYD
+        if (params.userVirtualBalance > minWithdraw) {
+            params.virtualAmount = bound(
+                fuzz.virtualAmount, minWithdraw, params.userVirtualBalance
+            );
+        }
     }
 
     function skip(Params memory params) internal view returns (bool) {
