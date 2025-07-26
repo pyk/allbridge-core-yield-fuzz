@@ -10,8 +10,12 @@ interface Vm {
     // Computes address for a given private key
     function addr(uint256 privateKey) external returns (address);
 
-    function assertEq(uint256 a, uint256 b) external view;
-    function assertEq(uint256 a, uint256 b, string memory err) external view;
+    function toString(address) external returns (string memory);
+    function toString(bytes calldata) external returns (string memory);
+    function toString(bytes32) external returns (string memory);
+    function toString(bool) external returns (string memory);
+    function toString(uint256) external returns (string memory);
+    function toString(int256) external returns (string memory);
 }
 
 contract Test {
@@ -207,19 +211,28 @@ contract Test {
         return delta * 10000 < allowedBps * maxVal;
     }
 
-    function assertEq(uint256 left, uint256 right) internal view {
-        vm.assertEq(left, right);
+    //*============================================================
+    //* Assertions
+    //*============================================================
+
+    function halt(string memory reason) internal {
+        console.log("%s", reason);
+        assert(false);
     }
 
-    function assertEq(
-        uint256 left,
-        uint256 right,
-        string memory err
-    )
-        internal
-        view
-    {
-        vm.assertEq(left, right, err);
+    function eq(uint256 a, uint256 b, string memory reason) internal {
+        if (a != b) {
+            string memory message = string.concat(
+                "Invalid: ",
+                vm.toString(a),
+                "!=",
+                vm.toString(b),
+                ", reason: ",
+                reason
+            );
+            console.log("%s", message);
+            assert(false);
+        }
     }
 }
 
