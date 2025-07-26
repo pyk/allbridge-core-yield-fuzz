@@ -9,6 +9,9 @@ interface Vm {
 
     // Computes address for a given private key
     function addr(uint256 privateKey) external returns (address);
+
+    function assertEq(uint256 a, uint256 b) external view;
+    function assertEq(uint256 a, uint256 b, string memory err) external view;
 }
 
 contract Test {
@@ -51,7 +54,11 @@ contract Test {
         name = labeledAddress[account];
     }
 
-    function _bound(uint256 x, uint256 min, uint256 max)
+    function _bound(
+        uint256 x,
+        uint256 min,
+        uint256 max
+    )
         internal
         pure
         virtual
@@ -65,14 +72,18 @@ contract Test {
         // dictionary values
         // do not get shifted if the min is nonzero. More info:
         // https://github.com/foundry-rs/forge-std/issues/188
-        if (x >= min && x <= max) return x;
+        if (x >= min && x <= max) {
+            return x;
+        }
 
         uint256 size = max - min + 1;
 
         // If the value is 0, 1, 2, 3, wrap that to min, min+1, min+2, min+3.
         // Similarly for the UINT256_MAX side.
         // This helps ensure coverage of the min/max values.
-        if (x <= 3 && size > x) return min + x;
+        if (x <= 3 && size > x) {
+            return min + x;
+        }
         if (x >= type(uint256).max - 3 && size > type(uint256).max - x) {
             return max - (type(uint256).max - x);
         }
@@ -81,17 +92,25 @@ contract Test {
         if (x > max) {
             uint256 diff = x - max;
             uint256 rem = diff % size;
-            if (rem == 0) return max;
+            if (rem == 0) {
+                return max;
+            }
             result = min + rem - 1;
         } else if (x < min) {
             uint256 diff = min - x;
             uint256 rem = diff % size;
-            if (rem == 0) return min;
+            if (rem == 0) {
+                return min;
+            }
             result = max - rem + 1;
         }
     }
 
-    function bound(uint256 x, uint256 min, uint256 max)
+    function bound(
+        uint256 x,
+        uint256 min,
+        uint256 max
+    )
         internal
         pure
         virtual
@@ -100,7 +119,11 @@ contract Test {
         result = _bound(x, min, max);
     }
 
-    function _bound(int256 x, int256 min, int256 max)
+    function _bound(
+        int256 x,
+        int256 min,
+        int256 max
+    )
         internal
         pure
         virtual
@@ -138,7 +161,11 @@ contract Test {
             : int256(y - INT256_MIN_ABS);
     }
 
-    function bound(int256 x, int256 min, int256 max)
+    function bound(
+        int256 x,
+        int256 min,
+        int256 max
+    )
         internal
         pure
         virtual
@@ -157,7 +184,11 @@ contract Test {
      * @return bool Returns true if the difference is within the allowed
      * tolerance, otherwise false.
      */
-    function isDeltaLessThanBps(uint256 a, uint256 b, uint256 allowedBps)
+    function isDeltaLessThanBps(
+        uint256 a,
+        uint256 b,
+        uint256 allowedBps
+    )
         internal
         pure
         returns (bool)
@@ -174,6 +205,21 @@ contract Test {
         // Return the result of the boolean comparison.
         // This is the rearranged formula: `delta / maxVal < allowedBps / 10000`
         return delta * 10000 < allowedBps * maxVal;
+    }
+
+    function assertEq(uint256 left, uint256 right) internal view {
+        vm.assertEq(left, right);
+    }
+
+    function assertEq(
+        uint256 left,
+        uint256 right,
+        string memory err
+    )
+        internal
+        view
+    {
+        vm.assertEq(left, right, err);
     }
 }
 
