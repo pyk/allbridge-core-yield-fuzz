@@ -27,7 +27,7 @@ contract PoolSwapFromVUsd is Test {
     }
 
     function debug(Params memory params) internal view {
-        console.log("* ===== %s =====", "PoolSwap");
+        console.log("* ===== %s =====", "PoolSwapFromVUsd");
         console.log("* poolIndex=%d", params.pool.index);
         console.log("* pool=%s", context.getLabel(address(params.pool.pool)));
         console.log("* user=%s", context.getLabel(params.user));
@@ -41,7 +41,8 @@ contract PoolSwapFromVUsd is Test {
     {
         params.pool = context.getRandomPool(fuzz.poolId);
         params.user = context.getRandomUser(fuzz.userId);
-        params.poolAssetBalance = params.pool.pool.tokenBalance();
+        params.poolAssetBalance =
+            params.pool.asset.balanceOf(address(params.pool.pool));
 
         // Get the current vUSD balance to determine a realistic swap size
         uint256 currentVUsdBalance = params.pool.pool.vUsdBalance();
@@ -50,21 +51,68 @@ contract PoolSwapFromVUsd is Test {
         // This keeps the system in a healthy state for other fuzz tests.
         uint256 maxSwapAmount = (currentVUsdBalance * 10) / 100;
 
-        if (maxSwapAmount > 0 && maxSwapAmount > params.pool.minSwapAmount) {
-            // Bound the swap amount to be between 1 and the calculated threshold
-            params.amount =
-                bound(fuzz.amount, params.pool.minSwapAmount, maxSwapAmount);
+        // Bound the swap amount to bebetween 1 and the calculated threshold
+        if (maxSwapAmount > 0) {
+            params.amount = bound(fuzz.amount, 1, maxSwapAmount);
         }
+    }
+
+    /**
+     * @notice Predicts if a `swapFromVUsd` call will succeed without violating the pool's balance ratio.
+     * @dev This function simulates the outcome of a swap to check against the `validateBalanceRatio` modifier's logic.
+     * @param pool The pool instance on which the swap would occur.
+     * @param amount The amount of vUSD to be swapped.
+     * @return isValid Returns true if the swap is predicted to be valid, false otherwise.
+     */
+    function isValidSwapFromVUsd(
+        Pool memory pool,
+        uint256 amount
+    )
+        internal
+        view
+        returns (bool isValid)
+    {
+        // 1. Get current pool state from the passed 'pool' object.
+        uint256 currentVUsdBalance = pool.pool.vUsdBalance();
+        uint256 balanceRatioMinBP = pool.pool.balanceRatioMinBP();
+        uint256 BP = 10000;
+
+        // 2. Predict the state after the swap.
+        uint256 newVUsdBalance = currentVUsdBalance + amount;
+        uint256 newTokenBalance;
+
+        try pool.pool.getY(newVUsdBalance) returns (uint256 y) {
+            newTokenBalance = y;
+        } catch {
+            // If getY itself reverts (e.g., due to math issues with extreme inputs),
+            // the swap is considered invalid.
+            return false;
+        }
+
+        // Prevent division by zero if the pool is ever drained.
+        if (newVUsdBalance == 0) {
+            return false;
+        }
+
+        // 3. Re-implement the check from the `validateBalanceRatio` modifier and return the result.
+        if (newTokenBalance > newVUsdBalance) {
+            isValid =
+                (newVUsdBalance * BP) / newTokenBalance >= balanceRatioMinBP;
+        } else {
+            isValid =
+                (newTokenBalance * BP) / newVUsdBalance >= balanceRatioMinBP;
+        }
+
+        return isValid;
     }
 
     function skip(Params memory params) internal view returns (bool) {
         if (params.amount == 0) {
             return true;
         }
-        if (params.poolAssetBalance < params.pool.initialLiquidity) {
+        if (!isValidSwapFromVUsd(params.pool, params.amount)) {
             return true;
         }
-        return false;
     }
 
     function call(Fuzz memory fuzz) external {

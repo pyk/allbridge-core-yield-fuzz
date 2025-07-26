@@ -8,6 +8,8 @@ import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { RewardManager } from "./RewardManager.sol";
 
+import { console } from "../../../test/Test.sol";
+
 /**
  * 4AD - D = 4A(x + y) - (D³ / 4xy)
  * X - is value of real stable token
@@ -174,27 +176,38 @@ contract Pool is RewardManager {
      * @param amount The deposited amount
      */
     function withdraw(uint256 amountLp) external whenCanWithdraw {
+        console.log("Pool.withdraw amountLp=%d", amountLp);
         uint256 oldD = d;
         _withdrawLp(msg.sender, amountLp);
+        console.log("Pool.withdraw oldD=%d", oldD);
+        console.log("Pool.withdraw d=%d", d);
 
         // Always withdraw tokens in amount equal to amountLp
+        console.log("Pool.withdraw tokenBalance=%d", tokenBalance);
+        console.log("Pool.withdraw vUsdBalance=%d", vUsdBalance);
 
         // Withdraw proportionally from token and vUsd balance
         uint256 oldBalance = (tokenBalance + vUsdBalance);
         tokenBalance -= (amountLp * tokenBalance) / oldBalance;
         vUsdBalance -= (amountLp * vUsdBalance) / oldBalance;
+        console.log("Pool.withdraw oldBalance=%d", oldBalance);
+        console.log("Pool.withdraw tokenBalance=%d", tokenBalance);
+        console.log("Pool.withdraw vUsdBalance=%d", vUsdBalance);
 
         require(tokenBalance + vUsdBalance < oldBalance, "Pool: zero changes");
 
         // Check if there is enough funds in reserve to withdraw
         require(amountLp <= reserves, "Pool: reserves");
+        console.log("Pool.withdraw reserves=%d", reserves);
 
         // Adjust reserves by withdraw amount
         reserves -= amountLp;
+        console.log("Pool.withdraw reserves=%d", reserves);
 
         // Update D and transfer tokens to the sender
         _updateD();
         require(d < oldD, "Pool: zero D changes");
+        console.log("Pool.withdraw d=%d", d);
 
         token.safeTransfer(msg.sender, _fromSystemPrecision(amountLp));
     }

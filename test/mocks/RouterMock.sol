@@ -8,14 +8,8 @@ contract RouterMock {
         pool.pool.swapFromVUsd(msg.sender, amount, 0, false);
     }
 
-    function swapToVUsd(
-        Pool memory pool,
-        address user,
-        uint256 amount
-    )
-        external
-    {
-        pool.asset.transferFrom(user, address(pool.pool), amount);
-        pool.pool.swapToVUsd(user, amount, false);
+    function swapToVUsd(Pool memory pool, uint256 amount) external {
+        pool.asset.transferFrom(msg.sender, address(pool.pool), amount);
+        pool.pool.swapToVUsd(msg.sender, amount, false);
     }
 }

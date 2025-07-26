@@ -45,7 +45,7 @@ contract CoreYieldContext is ContextProvider {
                 minDepositAmount: 10 * 1e6,
                 maxDepositAmount: 1_000_000 * 1e6,
                 minSwapAmount: 100 * 1e6,
-                maxSwapAmount: 1_000_000 * 1e6
+                maxSwapAmount: 1_000 * 1e6
             })
         );
 
@@ -88,7 +88,7 @@ contract CoreYieldContext is ContextProvider {
             router_: address(router),
             a_: 20,
             token_: pool.asset,
-            feeShareBP_: 30,
+            feeShareBP_: 500, // 5%
             balanceRatioMinBP_: 500,
             lpName: "Allbridge LP",
             lpSymbol: string.concat("LP-", params.name)
