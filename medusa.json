@@ -97,7 +97,8 @@
             },
             "targetFunctionSignatures": [],
             "excludeFunctionSignatures": [
-                "CoreYieldContext.swapFromVUsd((address,address,uint256,uint256,uint256,uint256,uint256),address,uint256)"
+                "CoreYieldContext.swapFromVUsd((address,address,uint256,uint256,uint256,uint256,uint256),address,uint256)",
+                "CoreYieldContext.swapToVUsd((address,address,uint256,uint256,uint256,uint256,uint256),address,uint256)"
             ]
         },
         "chainConfig": {
