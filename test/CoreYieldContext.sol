@@ -14,6 +14,7 @@ struct Pool {
     PoolMock pool;
     AssetMock asset;
     uint256 index;
+    uint256 initialLiquidity;
     uint256 minDepositAmount;
     uint256 maxDepositAmount;
     uint256 minSwapAmount;
@@ -36,6 +37,7 @@ contract CoreYieldContext is ContextProvider {
                 name: "USDT",
                 decimals: 6,
                 index: 0,
+                initialLiquidity: 1_000_000 * 1e6,
                 minDepositAmount: 10 * 1e6,
                 maxDepositAmount: 1_000_000 * 1e6,
                 minSwapAmount: 100 * 1e6,
@@ -48,6 +50,12 @@ contract CoreYieldContext is ContextProvider {
 
         for (uint256 i = 0; i < pools.length; i++) {
             Pool memory pool = pools[i];
+            // Initial liquidity
+            pool.asset.mint(address(this), pool.initialLiquidity);
+            pool.asset.approve(address(pool.pool), pool.initialLiquidity);
+            pool.pool.deposit(pool.initialLiquidity);
+
+            // s
             portfolioToken.setPool(pool.index, IPool(address(pool.pool)));
         }
     }
@@ -60,6 +68,7 @@ contract CoreYieldContext is ContextProvider {
         string name;
         uint8 decimals;
         uint256 index;
+        uint256 initialLiquidity;
         uint256 minDepositAmount;
         uint256 maxDepositAmount;
         uint256 minSwapAmount;
@@ -81,6 +90,7 @@ contract CoreYieldContext is ContextProvider {
             lpSymbol: string.concat("LP-", params.name)
         });
         pool.index = params.index;
+        pool.initialLiquidity = params.initialLiquidity;
         pool.minDepositAmount = params.minDepositAmount;
         pool.maxDepositAmount = params.maxDepositAmount;
         pool.minSwapAmount = params.minSwapAmount;
