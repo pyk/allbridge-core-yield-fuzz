@@ -234,6 +234,34 @@ contract Test {
             assert(false);
         }
     }
+
+    function eqWithTolerance(
+        uint256 a,
+        uint256 b,
+        uint256 tolerance,
+        string memory reason
+    )
+        internal
+    {
+        uint256 delta = a > b ? a - b : b - a;
+
+        if (delta > tolerance) {
+            string memory message = string.concat(
+                "Invalid: |",
+                vm.toString(a),
+                " - ",
+                vm.toString(b),
+                "| (",
+                vm.toString(delta),
+                ") > ",
+                vm.toString(tolerance),
+                ", reason: ",
+                reason
+            );
+            console.log("%s", message);
+            assert(false);
+        }
+    }
 }
 
 library console {
