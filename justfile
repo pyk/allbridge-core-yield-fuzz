@@ -21,7 +21,7 @@ revert:
     open corpus/coverage/revert_report.html
 
 repomix:
-    rm repomix-output.xml
+    rm -f repomix-output.xml
     npx repomix . --style xml
 
 clean:
