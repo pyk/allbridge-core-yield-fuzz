@@ -40,8 +40,12 @@ contract PortfolioTokenWithdraw is Test {
     {
         params.user = context.getRandomUser(fuzz.userId);
         params.userVirtualBalance = cyd.balanceOf(params.user);
-        params.virtualAmount =
-            bound(fuzz.virtualAmount, 0, params.userVirtualBalance);
+        uint256 minWithdraw = 1e3; // 1 CYD
+        if (params.userVirtualBalance > minWithdraw) {
+            params.virtualAmount = bound(
+                fuzz.virtualAmount, minWithdraw, params.userVirtualBalance
+            );
+        }
     }
 
     function skip(Params memory params) internal view returns (bool) {
