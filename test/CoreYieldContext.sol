@@ -16,6 +16,8 @@ struct Pool {
     uint256 index;
     uint256 minDepositAmount;
     uint256 maxDepositAmount;
+    uint256 minSwapAmount;
+    uint256 maxSwapAmount;
 }
 
 contract CoreYieldContext is ContextProvider {
@@ -34,16 +36,12 @@ contract CoreYieldContext is ContextProvider {
                 name: "USDT",
                 decimals: 6,
                 index: 0,
+                minDepositAmount: 10 * 1e6,
                 maxDepositAmount: 1_000_000 * 1e6,
-                minDepositAmount: 10 * 1e6
+                minSwapAmount: 100 * 1e6,
+                maxSwapAmount: 1_000_000 * 1e6
             })
         );
-        // pools[1] = deployPool(
-        //     DeployPoolParams({ name: "USDT", decimals: 18, index: 0 })
-        // );
-        // pools[2] = deployPool(
-        //     DeployPoolParams({ name: "USDT", decimals: 18, index: 0 })
-        // );
 
         portfolioToken = new PortfolioToken("Portfolio", "CYD");
         label(address(portfolioToken), "PortfolioToken");
@@ -64,6 +62,8 @@ contract CoreYieldContext is ContextProvider {
         uint256 index;
         uint256 minDepositAmount;
         uint256 maxDepositAmount;
+        uint256 minSwapAmount;
+        uint256 maxSwapAmount;
     }
 
     function deployPool(DeployPoolParams memory params)
@@ -83,6 +83,8 @@ contract CoreYieldContext is ContextProvider {
         pool.index = params.index;
         pool.minDepositAmount = params.minDepositAmount;
         pool.maxDepositAmount = params.maxDepositAmount;
+        pool.minSwapAmount = params.minSwapAmount;
+        pool.maxSwapAmount = params.maxSwapAmount;
 
         label(address(pool.asset), params.name);
         label(address(pool.pool), string.concat(params.name, "Pool"));
@@ -95,5 +97,26 @@ contract CoreYieldContext is ContextProvider {
     {
         id = bound(id, 0, pools.length - 1);
         pool = pools[id];
+    }
+
+    function swapToVUsd(
+        Pool memory pool,
+        address user,
+        uint256 amount
+    )
+        external
+    {
+        pool.asset.transferFrom(user, address(pool.pool), amount);
+        pool.pool.swapToVUsd(user, amount, false);
+    }
+
+    function swapFromVUsd(
+        Pool memory pool,
+        address user,
+        uint256 vUsdAmount
+    )
+        external
+    {
+        pool.pool.swapFromVUsd(user, vUsdAmount, 0, false);
     }
 }
