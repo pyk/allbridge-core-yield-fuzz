@@ -1,4 +1,3 @@
-// test/handlers/PoolSwap.sol
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
@@ -32,7 +31,7 @@ contract PoolSwap is Test {
         console.log("* pool=%s", context.getLabel(address(params.pool.pool)));
         console.log("* user=%s", context.getLabel(params.user));
         console.log("* amount=%d", params.amount);
-        console.log("* swapToVUsd=%t", params.swapToVUsd ? "true" : "false");
+        console.log("* swapToVUsd=%t", params.swapToVUsd);
     }
 
     function bind(Fuzz memory fuzz)
@@ -43,13 +42,15 @@ contract PoolSwap is Test {
         params.pool = context.getRandomPool(fuzz.poolId);
         params.user = context.getRandomUser(fuzz.userId);
         params.swapToVUsd = fuzz.swapToVUsd;
+        uint256 poolBalance =
+            params.pool.asset.balanceOf(address(params.pool.pool));
 
         if (params.swapToVUsd) {
-            params.amount = bound(
-                fuzz.amount,
-                params.pool.minSwapAmount,
-                params.pool.maxSwapAmount
-            );
+            if (poolBalance > params.pool.minSwapAmount * 3) {
+                params.amount = bound(
+                    fuzz.amount, params.pool.minSwapAmount, poolBalance / 2
+                );
+            }
         } else {
             // Amount of vUSD to swap. Bounding this is tricky.
             // Let's use the pool's vUsdBalance as a rough guide to avoid draining it instantly.
