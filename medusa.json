@@ -16,7 +16,8 @@
             "CoreYieldContext",
             "PortfolioTokenDeposit",
             "PortfolioTokenWithdraw",
-            "PortfolioTokenSubWithdraw"
+            "PortfolioTokenSubWithdraw",
+            "PortfolioTokenDepositRewards"
         ],
         "predeployedContracts": {},
         "targetContractsBalances": [],
@@ -28,6 +29,9 @@
                 "_context": "DeployedContract:CoreYieldContext"
             },
             "PortfolioTokenSubWithdraw": {
+                "_context": "DeployedContract:CoreYieldContext"
+            },
+            "PortfolioTokenDepositRewards": {
                 "_context": "DeployedContract:CoreYieldContext"
             }
         },
