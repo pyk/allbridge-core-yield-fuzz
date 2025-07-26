@@ -20,6 +20,9 @@ contract CoreYieldContext is ContextProvider {
     PortfolioToken public portfolioToken;
 
     constructor() {
+        label(address(this), "CoreYieldContext");
+        label(address(0), "ZeroAddress");
+
         addUsers();
 
         // TODO: we add one pool first for testing
