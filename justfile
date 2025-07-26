@@ -5,7 +5,9 @@ call-trace:
     #!/bin/sh
     rm call-trace.txt
     LATEST_MEDUSA_LOG=$(ls -1dt corpus/logs/* | head -n 1)
-    cp "$LATEST_MEDUSA_LOG" call-trace.txt
+    cp "$LATEST_MEDUSA_LOG" call-trace-raw.txt
+    sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g" call-trace-raw.txt > call-trace.txt
+    rm call-trace-raw.txt
     echo "$LATEST_MEDUSA_LOG > call-trace.txt"
 
 debug:
