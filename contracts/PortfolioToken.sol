@@ -12,6 +12,8 @@ import { VirtualMultiToken } from "./VirtualMultiToken.sol";
 import { MultiToken } from "./MultiToken.sol";
 import "./lib/PoolUtils.sol";
 
+import { console } from "../test/Test.sol";
+
 contract PortfolioToken is Ownable, VirtualMultiToken {
     using SafeERC20 for IERC20;
 
@@ -73,10 +75,17 @@ contract PortfolioToken is Ownable, VirtualMultiToken {
      * @param virtualAmount The amount of virtual tokens to withdraw.
      */
     function withdraw(uint256 virtualAmount) external {
+        console.log("* PortfolioToken.withdraw virtualAmount=%d", virtualAmount);
+
         // @audit EXTERNAL CALL
         depositRewards();
 
         uint256 totalVirtualBalance = balanceOf(msg.sender);
+        console.log(
+            "* PortfolioToken.withdraw totalVirtualBalance=%d",
+            totalVirtualBalance
+        );
+
         if (totalVirtualBalance == 0 || virtualAmount == 0) {
             return;
         }
@@ -98,14 +107,35 @@ contract PortfolioToken is Ownable, VirtualMultiToken {
         internal
         returns (uint256 subVirtualAmount)
     {
+        console.log(
+            "* PortfolioToken._withdrawIndex virtualAmount=%d", virtualAmount
+        );
+        console.log(
+            "* PortfolioToken._withdrawIndex totalVirtualBalance=%d",
+            totalVirtualBalance
+        );
+        console.log("* PortfolioToken._withdrawIndex index=%d", index);
+
         IPool pool = pools[index];
         if (address(pool) == address(0)) {
             return 0;
         }
+
         uint256 subVirtualBalance =
             VirtualMultiToken.subBalanceOf(msg.sender, index);
+
         subVirtualAmount =
             (virtualAmount * subVirtualBalance) / totalVirtualBalance;
+
+        console.log(
+            "* PortfolioToken._withdrawIndex subVirtualBalance=%d",
+            subVirtualBalance
+        );
+        console.log(
+            "* PortfolioToken._withdrawIndex subVirtualAmount=%d",
+            subVirtualAmount
+        );
+
         if (subVirtualAmount == 0) {
             return 0;
         }
@@ -138,6 +168,11 @@ contract PortfolioToken is Ownable, VirtualMultiToken {
     )
         private
     {
+        console.log(
+            "* PortfolioToken._subWithdraw virtualAmount=%d", virtualAmount
+        );
+        console.log("* PortfolioToken._subWithdraw index=%d", index);
+
         // Zero amount should be checked before
         IERC20 token = tokens[index];
 
@@ -150,6 +185,15 @@ contract PortfolioToken is Ownable, VirtualMultiToken {
             ? contractBalance
             : amountToWithdraw;
         token.safeTransfer(msg.sender, amountToWithdraw);
+
+        console.log(
+            "* PortfolioToken._subWithdraw contractBalance=%d", contractBalance
+        );
+        console.log(
+            "* PortfolioToken._subWithdraw amountToWithdraw=%d",
+            amountToWithdraw
+        );
+
         emit Withdrawn(msg.sender, address(token), amountToWithdraw);
     }
 
@@ -168,6 +212,8 @@ contract PortfolioToken is Ownable, VirtualMultiToken {
      * @param index The index of the pool for which rewards are to be deposited.
      */
     function subDepositRewards(uint256 index) public {
+        console.log("* PortfolioToken.subDepositRewards index=%d", index);
+
         require(index < NUM_TOKENS, "Index out of range");
         IPool pool = pools[index];
         if (address(pool) == address(0)) {
@@ -186,6 +232,15 @@ contract PortfolioToken is Ownable, VirtualMultiToken {
         // @audit EXTERNAL CALL
         // deposit all contract token balance
         uint256 balance = token.balanceOf(address(this));
+
+        console.log(
+            "* PortfolioToken._subDepositRewardsPoolCheck balance=%d", balance
+        );
+        console.log(
+            "* PortfolioToken._subDepositRewardsPoolCheck tokensPerSystem[index]=%d",
+            tokensPerSystem[index]
+        );
+
         if ((balance / tokensPerSystem[index]) > 0) {
             // @audit EXTERNAL CALL
             pool.deposit(balance);
