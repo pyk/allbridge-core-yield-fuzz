@@ -25,13 +25,12 @@ contract PortfolioTokenDepositWithdrawRoundtrip is Test {
         uint256 amount;
     }
 
-    function debug(
-        Params memory params,
-        uint256 virtualAmountReceived
-    )
-        internal
-        view
-    {
+    struct State {
+        uint256 userAssetBalance;
+        uint256 userSubTokenBalance;
+    }
+
+    function debug(Params memory params) internal view {
         console.log(
             "* ===== %s =====", "PortfolioTokenDepositWithdrawRoundtrip"
         );
@@ -39,7 +38,6 @@ contract PortfolioTokenDepositWithdrawRoundtrip is Test {
         console.log("* pool=%s", context.getLabel(address(params.pool.pool)));
         console.log("* user=%s", context.getLabel(params.user));
         console.log("* depositAmount=%d", params.amount);
-        console.log("* virtualAmountReceived=%d", virtualAmountReceived);
     }
 
     function bind(Fuzz memory fuzz)
@@ -65,20 +63,23 @@ contract PortfolioTokenDepositWithdrawRoundtrip is Test {
         return false;
     }
 
+    function snapshot(Params memory params)
+        internal
+        view
+        returns (State memory state)
+    {
+        state.userAssetBalance = params.pool.asset.balanceOf(params.user);
+        state.userSubTokenBalance =
+            cyd.subBalanceOf(params.user, params.pool.index);
+    }
+
     function call(Fuzz memory fuzz) external {
         Params memory params = bind(fuzz);
         if (skip(params)) {
             return;
         }
+        debug(params);
 
-        // --- PRE-CONDITIONS ---
-        // Record initial balances to verify the invariant later
-        uint256 initialAssetBalance = params.pool.asset.balanceOf(params.user);
-        uint256 initialCydBalance = cyd.balanceOf(params.user);
-        uint256 initialSubCydBalance =
-            cyd.subBalanceOf(params.user, params.pool.index);
-
-        // --- DEPOSIT ---
         // 1. Give the user the assets to deposit
         params.pool.asset.mint(params.user, params.amount);
 
@@ -86,36 +87,42 @@ contract PortfolioTokenDepositWithdrawRoundtrip is Test {
         vm.prank(params.user);
         params.pool.asset.approve(address(cyd), params.amount);
 
-        // 3. User deposits the assets into the specific pool
+        // 3. Snapshot before deposit
+        State memory beforeDeposit = snapshot(params);
+
+        // 4. User deposits the assets into the specific pool
         vm.prank(params.user);
-        cyd.deposit(params.amount, params.pool.index);
+        try cyd.deposit(params.amount, params.pool.index) { }
+        catch {
+            halt("User fails to deposit");
+        }
 
-        // --- POST-DEPOSIT CHECKS ---
-        // Calculate the amount of virtual CYD tokens the user received from this deposit
-        uint256 virtualAmountReceived = cyd.subBalanceOf(
-            params.user, params.pool.index
-        ) - initialSubCydBalance;
+        // 5. Snapshot after deposit
+        State memory afterDeposit = snapshot(params);
+        uint256 virtualAmountReceived =
+            afterDeposit.userSubTokenBalance - beforeDeposit.userSubTokenBalance;
 
-        // The user must receive some CYD tokens for a non-zero deposit
-        assert(virtualAmountReceived > 0);
-
-        debug(params, virtualAmountReceived);
-
-        // --- WITHDRAW ---
-        // User immediately withdraws the exact amount of virtual CYD tokens they just received
-        // from the same pool. We use `subWithdraw` as it's the direct inverse of a single-pool deposit.
+        // 6. User immediately withdraws the exact amount of virtual CYD tokens they just received
         vm.prank(params.user);
         cyd.subWithdraw(virtualAmountReceived, params.pool.index);
 
-        // --- FINAL ASSERTIONS (INVARIANT CHECK) ---
-        uint256 finalAssetBalance = params.pool.asset.balanceOf(params.user);
-        uint256 finalCydBalance = cyd.balanceOf(params.user);
+        // 7. Snapshot after deposit
+        State memory afterWithdraw = snapshot(params);
 
-        // Invariant 1: The user's final asset balance must be identical to their initial balance.
-        // Any loss violates the "zero fees" promise.
-        assert(finalAssetBalance == initialAssetBalance);
+        // Invariant 1: The user's final asset balance must be identical to
+        // their initial balance.
+        eq(
+            beforeDeposit.userAssetBalance,
+            afterWithdraw.userAssetBalance,
+            "Asset balance mismatch after roundtrip"
+        );
 
-        // Invariant 2: The user's total CYD balance should return to its original state.
-        assert(finalCydBalance == initialCydBalance);
+        // Invariant 2: The user's total sub token balance should return to
+        // its original state.
+        eq(
+            beforeDeposit.userSubTokenBalance,
+            afterWithdraw.userSubTokenBalance,
+            "Sub-token balance mismatch after roundtrip"
+        );
     }
 }
