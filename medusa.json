@@ -3,7 +3,7 @@
         "workers": 8,
         "workerResetLimit": 50,
         "timeout": 0,
-        "testLimit": 500000,
+        "testLimit": 100000,
         "shrinkLimit": 5000,
         "callSequenceLength": 150,
         "corpusDirectory": "corpus",
@@ -13,11 +13,16 @@
         ],
         "revertReporterEnabled": true,
         "targetContracts": [
-            "CoreYieldContext"
+            "CoreYieldContext",
+            "PortfolioTokenDeposit"
         ],
         "predeployedContracts": {},
         "targetContractsBalances": [],
-        "constructorArgs": {},
+        "constructorArgs": {
+            "PortfolioTokenDeposit": {
+                "_context": "DeployedContract:CoreYieldContext"
+            }
+        },
         "deployerAddress": "0xD000000000000000000000000000000000000000",
         "senderAddresses": [
             "0x1000000000000000000000000000000000000000",

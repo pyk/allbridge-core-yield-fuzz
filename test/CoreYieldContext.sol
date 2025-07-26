@@ -12,6 +12,7 @@ struct Pool {
     PoolMock pool;
     AssetMock asset;
     uint256 index;
+    uint256 maxDepositAmount;
 }
 
 contract CoreYieldContext is ContextProvider {
@@ -23,7 +24,12 @@ contract CoreYieldContext is ContextProvider {
 
         // TODO: we add one pool first for testing
         pools[0] = deployPool(
-            DeployPoolParams({ name: "USDT", decimals: 6, index: 0 })
+            DeployPoolParams({
+                name: "USDT",
+                decimals: 6,
+                index: 0,
+                maxDepositAmount: 1_000_000 * 1e6
+            })
         );
         // pools[1] = deployPool(
         //     DeployPoolParams({ name: "USDT", decimals: 18, index: 0 })
@@ -41,10 +47,15 @@ contract CoreYieldContext is ContextProvider {
         }
     }
 
+    //************************************************************//
+    //                            Pool                            //
+    //************************************************************//
+
     struct DeployPoolParams {
         string name;
         uint8 decimals;
         uint256 index;
+        uint256 maxDepositAmount;
     }
 
     function deployPool(DeployPoolParams memory params)
@@ -54,8 +65,18 @@ contract CoreYieldContext is ContextProvider {
         pool.asset = new AssetMock(params.name, params.name, params.decimals);
         pool.pool = new PoolMock(pool.asset);
         pool.index = params.index;
+        pool.maxDepositAmount = params.maxDepositAmount;
 
         label(address(pool.asset), string.concat(params.name, "Asset"));
         label(address(pool.pool), string.concat(params.name, "Pool"));
+    }
+
+    function getRandomPool(uint256 id)
+        external
+        view
+        returns (Pool memory pool)
+    {
+        id = bound(id, 0, pools.length - 1);
+        pool = pools[id];
     }
 }
