@@ -45,13 +45,18 @@ contract PortfolioToken is Ownable, VirtualMultiToken {
         IPool pool = pools[index];
         require(address(pool) != address(0), "No pool");
         _subDepositRewardsPoolCheck(pool, index);
+
+        // @audit EXTERNAL CALL
         // Transfer tokens from the user to the contract
         token.safeTransferFrom(msg.sender, address(this), amount);
 
         // lp amount is the same as virtual token amount
         uint256 virtualAmountBefore = pool.balanceOf(address(this));
+
+        // @audit EXTERNAL CALL
         // calculate sum of mint amount
         pool.deposit(amount);
+
         uint256 virtualAmountAfter = pool.balanceOf(address(this));
         uint256 virtualAmountDiff = virtualAmountAfter - virtualAmountBefore;
         _mintAfterTotalChanged(msg.sender, virtualAmountDiff, index);
@@ -68,6 +73,7 @@ contract PortfolioToken is Ownable, VirtualMultiToken {
      * @param virtualAmount The amount of virtual tokens to withdraw.
      */
     function withdraw(uint256 virtualAmount) external {
+        // @audit EXTERNAL CALL
         depositRewards();
 
         uint256 totalVirtualBalance = balanceOf(msg.sender);
@@ -174,10 +180,14 @@ contract PortfolioToken is Ownable, VirtualMultiToken {
     function _subDepositRewardsPoolCheck(IPool pool, uint256 index) private {
         IERC20 token = tokens[index];
 
+        // @audit EXTERNAL CALL
         pool.claimRewards();
+
+        // @audit EXTERNAL CALL
         // deposit all contract token balance
         uint256 balance = token.balanceOf(address(this));
         if ((balance / tokensPerSystem[index]) > 0) {
+            // @audit EXTERNAL CALL
             pool.deposit(balance);
             emit DepositedRewards(balance, address(token));
         }

@@ -14,12 +14,16 @@
         "revertReporterEnabled": true,
         "targetContracts": [
             "CoreYieldContext",
-            "PortfolioTokenDeposit"
+            "PortfolioTokenDeposit",
+            "PortfolioTokenWithdraw"
         ],
         "predeployedContracts": {},
         "targetContractsBalances": [],
         "constructorArgs": {
             "PortfolioTokenDeposit": {
+                "_context": "DeployedContract:CoreYieldContext"
+            },
+            "PortfolioTokenWithdraw": {
                 "_context": "DeployedContract:CoreYieldContext"
             }
         },

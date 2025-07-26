@@ -67,7 +67,7 @@ contract CoreYieldContext is ContextProvider {
         pool.index = params.index;
         pool.maxDepositAmount = params.maxDepositAmount;
 
-        label(address(pool.asset), string.concat(params.name, "Asset"));
+        label(address(pool.asset), params.name);
         label(address(pool.pool), string.concat(params.name, "Pool"));
     }
 
