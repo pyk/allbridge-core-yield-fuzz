@@ -5,7 +5,7 @@ import { Test, console } from "../Test.sol";
 
 import { CoreYieldContext, PortfolioToken, Pool } from "../CoreYieldContext.sol";
 
-contract PortfolioTokenWithdraw is Test {
+contract PortfolioTokenSubWithdraw is Test {
     CoreYieldContext context;
     PortfolioToken cyd;
 
@@ -15,20 +15,23 @@ contract PortfolioTokenWithdraw is Test {
     }
 
     struct Fuzz {
+        uint256 poolId;
         uint256 userId;
         uint256 virtualAmount;
     }
 
     struct Params {
+        Pool pool;
         address user;
         uint256 virtualAmount;
     }
 
     function debug(Params memory params) internal view {
-        console.log("* ===== %s =====", "PortfolioTokenWithdraw");
+        console.log("* ===== %s =====", "PortfolioTokenSubWithdraw");
+        console.log("* poolIndex=%d", params.pool.index);
+        console.log("* pool=%s", context.getLabel(address(params.pool.pool)));
         console.log("* user=%s", context.getLabel(params.user));
         console.log("* virtualAmount=%d", params.virtualAmount);
-        console.log("* cyd.totalSupply=%d", cyd.totalSupply());
     }
 
     function bind(Fuzz memory fuzz)
@@ -36,6 +39,7 @@ contract PortfolioTokenWithdraw is Test {
         view
         returns (Params memory params)
     {
+        params.pool = context.getRandomPool(fuzz.poolId);
         params.user = context.getRandomUser(fuzz.userId);
         params.virtualAmount =
             bound(fuzz.virtualAmount, 0, cyd.balanceOf(params.user));
@@ -54,7 +58,7 @@ contract PortfolioTokenWithdraw is Test {
         debug(params);
 
         vm.prank(params.user);
-        try cyd.withdraw(params.virtualAmount) { }
+        try cyd.subWithdraw(params.virtualAmount, params.pool.index) { }
         catch {
             assert(false);
         }
