@@ -32,7 +32,7 @@ contract PoolSwap is Test {
         console.log("* pool=%s", context.getLabel(address(params.pool.pool)));
         console.log("* user=%s", context.getLabel(params.user));
         console.log("* amount=%d", params.amount);
-        console.log("* swapToVUsd=", params.swapToVUsd ? "true" : "false");
+        console.log("* swapToVUsd=%t", params.swapToVUsd ? "true" : "false");
     }
 
     function bind(Fuzz memory fuzz)
@@ -86,10 +86,14 @@ contract PoolSwap is Test {
             params.pool.asset.approve(address(context), params.amount);
 
             try context.swapToVUsd(params.pool, params.user, params.amount) { }
-                catch { }
+            catch {
+                assert(false);
+            }
         } else {
             try context.swapFromVUsd(params.pool, params.user, params.amount) {
-            } catch { }
+            } catch {
+                assert(false);
+            }
         }
     }
 }
