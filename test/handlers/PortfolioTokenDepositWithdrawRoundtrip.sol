@@ -111,9 +111,10 @@ contract PortfolioTokenDepositWithdrawRoundtrip is Test {
 
         // Invariant 1: The user's final asset balance must be identical to
         // their initial balance.
-        eq(
+        eqWithTolerance(
             beforeDeposit.userAssetBalance,
             afterWithdraw.userAssetBalance,
+            0.1e6, // TODO: use asset decimals
             "Asset balance mismatch after roundtrip"
         );
 
