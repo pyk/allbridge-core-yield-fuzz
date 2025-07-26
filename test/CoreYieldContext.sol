@@ -6,6 +6,7 @@ import { Pool as PoolMock } from "@allbridge-core/contracts/Pool.sol";
 import { ContextProvider } from "./ContextProvider.sol";
 
 import { AssetMock } from "./mocks/AssetMock.sol";
+import { RouterMock } from "./mocks/RouterMock.sol";
 
 import { PortfolioToken } from "../contracts/PortfolioToken.sol";
 import { IPool } from "../contracts/interfaces/IPool.sol";
@@ -24,12 +25,15 @@ struct Pool {
 contract CoreYieldContext is ContextProvider {
     Pool[1] pools;
     PortfolioToken public portfolioToken;
+    RouterMock public router;
 
     constructor() {
         label(address(this), "CoreYieldContext");
         label(address(0), "ZeroAddress");
 
         addUsers();
+
+        router = new RouterMock();
 
         // TODO: we add one pool first for testing
         pools[0] = deployPool(
@@ -81,7 +85,7 @@ contract CoreYieldContext is ContextProvider {
     {
         pool.asset = new AssetMock(params.name, params.name, params.decimals);
         pool.pool = new PoolMock({
-            router_: address(this),
+            router_: address(router),
             a_: 20,
             token_: pool.asset,
             feeShareBP_: 30,
@@ -107,26 +111,5 @@ contract CoreYieldContext is ContextProvider {
     {
         id = bound(id, 0, pools.length - 1);
         pool = pools[id];
-    }
-
-    function swapToVUsd(
-        Pool memory pool,
-        address user,
-        uint256 amount
-    )
-        external
-    {
-        pool.asset.transferFrom(user, address(pool.pool), amount);
-        pool.pool.swapToVUsd(user, amount, false);
-    }
-
-    function swapFromVUsd(
-        Pool memory pool,
-        address user,
-        uint256 vUsdAmount
-    )
-        external
-    {
-        pool.pool.swapFromVUsd(user, vUsdAmount, 0, false);
     }
 }

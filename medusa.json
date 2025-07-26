@@ -21,7 +21,7 @@
             "PortfolioTokenSubDepositRewards",
             "MultiTokenTransfer",
             "MultiTokenSubTransfer",
-            "PoolSwap"
+            "PoolSwapFromVUsd"
         ],
         "predeployedContracts": {},
         "targetContractsBalances": [],
@@ -47,7 +47,7 @@
             "MultiTokenSubTransfer": {
                 "_context": "DeployedContract:CoreYieldContext"
             },
-            "PoolSwap": {
+            "PoolSwapFromVUsd": {
                 "_context": "DeployedContract:CoreYieldContext"
             }
         },
@@ -97,8 +97,6 @@
             },
             "targetFunctionSignatures": [],
             "excludeFunctionSignatures": [
-                "CoreYieldContext.swapFromVUsd",
-                "CoreYieldContext.swapToVUsd"
             ]
         },
         "chainConfig": {
