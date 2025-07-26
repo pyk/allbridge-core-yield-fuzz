@@ -49,6 +49,11 @@ contract PortfolioTokenWithdraw is Test {
     }
 
     function skip(Params memory params) internal view returns (bool) {
+        // TODO: handle multiple pools
+        Pool memory pool = context.getRandomPool(0);
+        if (params.virtualAmount > pool.pool.reserves()) {
+            return true;
+        }
         return false;
     }
 

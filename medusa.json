@@ -21,8 +21,7 @@
             "PortfolioTokenSubDepositRewards",
             "MultiTokenTransfer",
             "MultiTokenSubTransfer",
-            "PoolSwapFromVUsd",
-            "PoolSwapToVUsd"
+            "RoundtripSwap"
         ],
         "predeployedContracts": {},
         "targetContractsBalances": [],
@@ -48,10 +47,7 @@
             "MultiTokenSubTransfer": {
                 "_context": "DeployedContract:CoreYieldContext"
             },
-            "PoolSwapFromVUsd": {
-                "_context": "DeployedContract:CoreYieldContext"
-            },
-            "PoolSwapToVUsd": {
+            "RoundtripSwap": {
                 "_context": "DeployedContract:CoreYieldContext"
             }
         },
