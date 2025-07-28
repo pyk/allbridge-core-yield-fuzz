@@ -69,10 +69,10 @@ contract PortfolioTokenDepositWithdrawRoundtrip is Test {
         state.userSubTokenBalance = cyd.subBalanceOf(user, params.pool.index);
     }
 
-    function call(Fuzz memory fuzz) external returns (bool) {
+    function call(Fuzz memory fuzz) external {
         Params memory params = bind(fuzz);
         if (skip(params)) {
-            return true;
+            return;
         }
         debug(params);
 
