@@ -88,7 +88,7 @@ contract CoreYieldContext is ContextProvider {
             router_: address(router),
             a_: 20,
             token_: pool.asset,
-            feeShareBP_: 500, // 5%
+            feeShareBP_: 30, // 0.3%
             balanceRatioMinBP_: 500,
             lpName: "Allbridge LP",
             lpSymbol: string.concat("LP-", params.name)
