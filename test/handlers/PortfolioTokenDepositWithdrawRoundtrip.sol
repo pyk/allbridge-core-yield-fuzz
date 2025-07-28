@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import { Test, console } from "../Test.sol";
+import { Test, console, expect } from "../Test.sol";
 import { CoreYieldContext, PortfolioToken, Pool } from "../CoreYieldContext.sol";
 
 contract PortfolioTokenDepositWithdrawRoundtrip is Test {
@@ -69,10 +69,10 @@ contract PortfolioTokenDepositWithdrawRoundtrip is Test {
         state.userSubTokenBalance = cyd.subBalanceOf(user, params.pool.index);
     }
 
-    function property_call(Fuzz memory fuzz) external {
+    function call(Fuzz memory fuzz) external returns (bool) {
         Params memory params = bind(fuzz);
         if (skip(params)) {
-            return;
+            return true;
         }
         debug(params);
 
@@ -107,19 +107,19 @@ contract PortfolioTokenDepositWithdrawRoundtrip is Test {
 
         // Invariant 1: The user's final asset balance must be identical to
         // their initial balance.
-        eqWithTolerance(
+        expect.eq(
+            "User asset balance should be equal after deposit/withdraw roundtrip",
             beforeDeposit.userAssetBalance,
             afterWithdraw.userAssetBalance,
-            0.1e6, // TODO: use asset decimals
-            "Asset balance mismatch after roundtrip"
+            0.1e6
         );
 
         // Invariant 2: The user's total sub token balance should return to
         // its original state.
-        eq(
+        expect.eq(
+            "Sub-token balance should be equal after deposit/withdraw roundtrip",
             beforeDeposit.userSubTokenBalance,
-            afterWithdraw.userSubTokenBalance,
-            "Sub-token balance mismatch after roundtrip"
+            afterWithdraw.userSubTokenBalance
         );
     }
 }

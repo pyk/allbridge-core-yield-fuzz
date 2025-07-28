@@ -10,12 +10,12 @@ interface Vm {
     // Computes address for a given private key
     function addr(uint256 privateKey) external returns (address);
 
-    function toString(address) external returns (string memory);
-    function toString(bytes calldata) external returns (string memory);
-    function toString(bytes32) external returns (string memory);
-    function toString(bool) external returns (string memory);
-    function toString(uint256) external returns (string memory);
-    function toString(int256) external returns (string memory);
+    function toString(address) external view returns (string memory);
+    function toString(bytes calldata) external view returns (string memory);
+    function toString(bytes32) external view returns (string memory);
+    function toString(bool) external view returns (string memory);
+    function toString(uint256) external view returns (string memory);
+    function toString(int256) external view returns (string memory);
 }
 
 contract Test {
@@ -320,5 +320,80 @@ library console {
 
     function log(string memory p0, bool p1) internal pure {
         _sendLogPayload(abi.encodeWithSignature("log(string,bool)", p0, p1));
+    }
+}
+
+library property {
+    Vm constant vm = Vm(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
+
+    function eq(
+        string memory description,
+        uint256 a,
+        uint256 b
+    )
+        internal
+        view
+        returns (bool)
+    {
+        if (a != b) {
+            string memory message = string.concat(
+                "Property Failed: ",
+                description,
+                " | Assertion: ",
+                vm.toString(a),
+                " != ",
+                vm.toString(b)
+            );
+            console.log("%s", message);
+            return false;
+        }
+        return true;
+    }
+
+    function eq(
+        string memory description,
+        uint256 a,
+        uint256 b,
+        uint256 tolerance
+    )
+        internal
+        view
+        returns (bool)
+    {
+        uint256 delta = a > b ? a - b : b - a;
+        if (delta > tolerance) {
+            string memory message = string.concat(
+                "Property Failed: ",
+                description,
+                " | Assertion: |",
+                vm.toString(a),
+                " - ",
+                vm.toString(b),
+                "| (",
+                vm.toString(delta),
+                ") > ",
+                vm.toString(tolerance)
+            );
+            console.log("%s", message);
+            return false;
+        }
+        return true;
+    }
+}
+
+library expect {
+    function eq(string memory description, uint256 a, uint256 b) internal {
+        assert(property.eq(description, a, b));
+    }
+
+    function eq(
+        string memory description,
+        uint256 a,
+        uint256 b,
+        uint256 tolerance
+    )
+        internal
+    {
+        assert(property.eq(description, a, b, tolerance));
     }
 }
