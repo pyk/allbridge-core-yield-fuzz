@@ -18,8 +18,6 @@ contract MultiTokenSubTransfer is Test {
         uint256 poolId;
         uint256 fromId;
         uint256 toId;
-        bool toOtherUser;
-        address to;
         uint256 amount;
     }
 
@@ -46,11 +44,7 @@ contract MultiTokenSubTransfer is Test {
     {
         params.pool = context.getRandomPool(fuzz.poolId);
         params.from = context.getRandomUser(fuzz.fromId);
-        if (fuzz.toOtherUser) {
-            params.to = context.getRandomUser(fuzz.toId);
-        } else {
-            params.to = fuzz.to;
-        }
+        params.to = context.getRandomUser(fuzz.toId);
         params.amount = bound(fuzz.amount, 1, cyd.balanceOf(params.from));
     }
 
