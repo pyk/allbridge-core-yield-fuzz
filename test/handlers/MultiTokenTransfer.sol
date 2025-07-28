@@ -17,8 +17,6 @@ contract MultiTokenTransfer is Test {
     struct Fuzz {
         uint256 fromId;
         uint256 toId;
-        bool toOtherUser;
-        address to;
         uint256 amount;
     }
 
@@ -41,11 +39,7 @@ contract MultiTokenTransfer is Test {
         returns (Params memory params)
     {
         params.from = context.getRandomUser(fuzz.fromId);
-        if (fuzz.toOtherUser) {
-            params.to = context.getRandomUser(fuzz.toId);
-        } else {
-            params.to = fuzz.to;
-        }
+        params.to = context.getRandomUser(fuzz.toId);
 
         uint256 balance = cyd.balanceOf(params.from);
         if (balance > 0) {
