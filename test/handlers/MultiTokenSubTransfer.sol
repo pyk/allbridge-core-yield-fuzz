@@ -29,6 +29,8 @@ contract MultiTokenSubTransfer is Test {
     }
 
     struct State {
+        address from;
+        address to;
         uint256 fromSubBalance;
         uint256 toSubBalance;
         uint256 subTotalSupply;
@@ -69,6 +71,8 @@ contract MultiTokenSubTransfer is Test {
         view
         returns (State memory state)
     {
+        state.from = params.from;
+        state.to = params.to;
         state.fromSubBalance = cyd.subBalanceOf(params.from, params.pool.index);
         state.toSubBalance = cyd.subBalanceOf(params.to, params.pool.index);
         state.subTotalSupply = cyd.subTotalSupply(params.pool.index);
@@ -107,6 +111,24 @@ contract MultiTokenSubTransfer is Test {
         );
     }
 
+    /// @notice Property: A subTransfer to the sender themselves should not change their real balance.
+    function property_subTransfer_to_self_is_noop_on_real_balance(
+        State memory pre,
+        State memory post
+    )
+        internal
+    {
+        if (pre.from != pre.to) {
+            return;
+        }
+
+        expect.eq(
+            "Real balance should be unchanged after a self-transfer",
+            pre.fromSubBalance,
+            post.toSubBalance
+        );
+    }
+
     function call(Fuzz memory fuzz) external {
         Params memory params = bind(fuzz);
         if (skip(params)) {
@@ -121,6 +143,7 @@ contract MultiTokenSubTransfer is Test {
             State memory post = snapshot(params);
             property_subTransfer_updates_balances_correctly(pre, post);
             property_subTransfer_preserves_total_supply(pre, post);
+            property_subTransfer_to_self_is_noop_on_real_balance(pre, post);
         } catch {
             assert(false);
         }
