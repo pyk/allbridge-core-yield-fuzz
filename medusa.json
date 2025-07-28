@@ -24,7 +24,8 @@
             "MultiTokenApprove",
             "MultiTokenTransferFrom",
             "PoolSwapRoundtrip",
-            "PortfolioTokenDepositWithdrawRoundtrip"
+            "PortfolioTokenDepositWithdrawRoundtrip",
+            "PortfolioTokenNoUnbackedTokens"
         ],
         "predeployedContracts": {},
         "targetContractsBalances": [],
@@ -60,6 +61,9 @@
                 "_context": "DeployedContract:CoreYieldContext"
             },
             "PortfolioTokenDepositWithdrawRoundtrip": {
+                "_context": "DeployedContract:CoreYieldContext"
+            },
+            "PortfolioTokenNoUnbackedTokens": {
                 "_context": "DeployedContract:CoreYieldContext"
             }
         },
