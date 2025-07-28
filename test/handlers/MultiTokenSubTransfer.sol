@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import { Test, console } from "../Test.sol";
+import { Test, console, expect } from "../Test.sol";
 
 import { CoreYieldContext, PortfolioToken, Pool } from "../CoreYieldContext.sol";
 
@@ -28,6 +28,12 @@ contract MultiTokenSubTransfer is Test {
         uint256 amount;
     }
 
+    struct State {
+        uint256 fromSubBalance;
+        uint256 toSubBalance;
+        uint256 subTotalSupply;
+    }
+
     function debug(Params memory params) internal view {
         console.log("* ===== %s =====", "MultiTokenSubTransfer");
         console.log("* poolIndex=%d", params.pool.index);
@@ -45,7 +51,9 @@ contract MultiTokenSubTransfer is Test {
         params.pool = context.getRandomPool(fuzz.poolId);
         params.from = context.getRandomUser(fuzz.fromId);
         params.to = context.getRandomUser(fuzz.toId);
-        params.amount = bound(fuzz.amount, 1, cyd.balanceOf(params.from));
+        params.amount = bound(
+            fuzz.amount, 1, cyd.subBalanceOf(params.from, params.pool.index)
+        );
     }
 
     function skip(Params memory params) internal view returns (bool) {
@@ -55,6 +63,50 @@ contract MultiTokenSubTransfer is Test {
         return false;
     }
 
+    /// @notice Captures the state of the balances before or after an operation.
+    function snapshot(Params memory params)
+        internal
+        view
+        returns (State memory state)
+    {
+        state.fromSubBalance = cyd.subBalanceOf(params.from, params.pool.index);
+        state.toSubBalance = cyd.subBalanceOf(params.to, params.pool.index);
+        state.subTotalSupply = cyd.subTotalSupply(params.pool.index);
+    }
+
+    /// @notice Property: A successful subTransfer must correctly update the sender's and receiver's real balances.
+    /// The amount of real tokens debited from the sender must equal the amount credited to the receiver.
+    function property_subTransfer_updates_balances_correctly(
+        State memory pre,
+        State memory post
+    )
+        internal
+    {
+        uint256 amountDebited = pre.fromSubBalance - post.fromSubBalance;
+        uint256 amountCredited = post.toSubBalance - pre.toSubBalance;
+
+        expect.eq(
+            "Amount debited must equal amount credited",
+            amountDebited,
+            amountCredited,
+            1
+        );
+    }
+
+    /// @notice Property: A subTransfer must preserve the total supply of the underlying real sub-token.
+    function property_subTransfer_preserves_total_supply(
+        State memory pre,
+        State memory post
+    )
+        internal
+    {
+        expect.eq(
+            "Real sub-token total supply must not change after a transfer",
+            pre.subTotalSupply,
+            post.subTotalSupply
+        );
+    }
+
     function call(Fuzz memory fuzz) external {
         Params memory params = bind(fuzz);
         if (skip(params)) {
@@ -62,10 +114,14 @@ contract MultiTokenSubTransfer is Test {
         }
 
         debug(params);
+        State memory pre = snapshot(params);
 
         vm.prank(params.from);
-        try cyd.subTransfer(params.to, params.amount, params.pool.index) { }
-        catch {
+        try cyd.subTransfer(params.to, params.amount, params.pool.index) {
+            State memory post = snapshot(params);
+            property_subTransfer_updates_balances_correctly(pre, post);
+            property_subTransfer_preserves_total_supply(pre, post);
+        } catch {
             assert(false);
         }
     }
