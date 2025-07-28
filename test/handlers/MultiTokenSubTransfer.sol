@@ -53,12 +53,18 @@ contract MultiTokenSubTransfer is Test {
         params.pool = context.getRandomPool(fuzz.poolId);
         params.from = context.getRandomUser(fuzz.fromId);
         params.to = context.getRandomUser(fuzz.toId);
-        params.amount = bound(
-            fuzz.amount, 1, cyd.subBalanceOf(params.from, params.pool.index)
-        );
+        uint256 balance = cyd.subBalanceOf(params.from, params.pool.index);
+        if (balance > 0) {
+            params.amount = bound(
+                fuzz.amount, 1, cyd.subBalanceOf(params.from, params.pool.index)
+            );
+        }
     }
 
     function skip(Params memory params) internal view returns (bool) {
+        if (params.amount == 0) {
+            return true;
+        }
         if (params.to == address(0)) {
             return true;
         }
