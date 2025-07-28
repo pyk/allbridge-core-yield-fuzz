@@ -8,6 +8,8 @@ import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 import { IPool } from "./interfaces/IPool.sol";
 import { MultiToken } from "./MultiToken.sol";
 
+import { console } from "../test/Test.sol";
+
 abstract contract VirtualMultiToken is MultiToken {
     using SafeERC20 for ERC20;
 
@@ -88,6 +90,22 @@ abstract contract VirtualMultiToken is MultiToken {
         uint256 subVirtualBalance = subBalanceOf(from, index);
         uint256 subVirtualAmount =
             Math.ceilDiv(virtualAmount * subVirtualBalance, totalVirtualBalance);
+        console.log("* VirtualMultiToken._transferIndex index=%d", index);
+        console.log(
+            "* VirtualMultiToken._transferIndex subVirtualBalance=%d",
+            subVirtualBalance
+        );
+        console.log(
+            "* VirtualMultiToken._transferIndex subVirtualAmount=%d",
+            subVirtualAmount
+        );
+        console.log(
+            "* VirtualMultiToken._transferIndex virtualAmount=%d", virtualAmount
+        );
+        console.log(
+            "* VirtualMultiToken._transferIndex totalVirtualBalance=%d",
+            totalVirtualBalance
+        );
         MultiToken._singleTransfer(
             from, to, _fromVirtual(subVirtualAmount, index), index
         );
@@ -275,6 +293,14 @@ abstract contract VirtualMultiToken is MultiToken {
         }
 
         require(totalVirtual >= virtualAmount, "Amount more than total");
+
+        console.log("* VirtualMultiToken._fromVirtual realTotal=%d", realTotal);
+        console.log(
+            "* VirtualMultiToken._fromVirtual totalVirtual=%d", totalVirtual
+        );
+        console.log(
+            "* VirtualMultiToken._fromVirtual virtualAmount=%d", virtualAmount
+        );
 
         // realTotal - ((totalVirtual - amount) * realTotal / totalVirtual)
         assembly {
