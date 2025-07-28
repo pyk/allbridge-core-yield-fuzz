@@ -21,8 +21,8 @@ interface IPoolLike is IPool {
         external;
 }
 
-/// @custom:command forge test --match-contract L02Test
-contract L02Test is Test {
+/// @custom:command forge test --match-contract L03Test
+contract L03Test is Test {
     uint256 celoFork;
     IERC20 usdt = IERC20(0x48065fbBE25f71C9282ddf5e1cD6D6A887483D5e);
     IPoolLike pool = IPoolLike(0xfb2C7c10e731EBe96Dabdf4A96D656Bfe8e2b5Af);
@@ -91,15 +91,14 @@ contract L02Test is Test {
         createRewards();
         cyd.depositRewards();
 
-        uint256 beforeBalance =
-            cyd.subBalanceOf(wallet1, 0) + cyd.subBalanceOf(wallet2, 0);
+        uint256 beforeBalance = cyd.balanceOf(wallet1) + cyd.balanceOf(wallet2);
 
-        console.log("before subTransfer balance=%d", beforeBalance);
+        console.log("before transfer balance=%d", beforeBalance);
+
         vm.prank(wallet1);
-        cyd.subTransfer(wallet2, 1, 0);
+        cyd.transfer(wallet2, 1);
 
-        uint256 afterBalance =
-            cyd.subBalanceOf(wallet1, 0) + cyd.subBalanceOf(wallet2, 0);
+        uint256 afterBalance = cyd.balanceOf(wallet1) + cyd.balanceOf(wallet2);
         console.log("after subTransfer balance=%d", afterBalance);
 
         // for (uint256 i = 1; i < 500; i++) {
