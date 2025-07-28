@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import { Test, console } from "../Test.sol";
 import { CoreYieldContext, Pool, RouterMock } from "../CoreYieldContext.sol";
 
-contract RoundtripSwap is Test {
+contract PoolSwapRoundtrip is Test {
     CoreYieldContext context;
     RouterMock router;
 

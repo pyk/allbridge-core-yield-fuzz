@@ -21,7 +21,7 @@
             "PortfolioTokenSubDepositRewards",
             "MultiTokenTransfer",
             "MultiTokenSubTransfer",
-            "RoundtripSwap",
+            "PoolSwapRoundtrip",
             "PortfolioTokenDepositWithdrawRoundtrip"
         ],
         "predeployedContracts": {},
@@ -48,7 +48,7 @@
             "MultiTokenSubTransfer": {
                 "_context": "DeployedContract:CoreYieldContext"
             },
-            "RoundtripSwap": {
+            "PoolSwapRoundtrip": {
                 "_context": "DeployedContract:CoreYieldContext"
             },
             "PortfolioTokenDepositWithdrawRoundtrip": {
