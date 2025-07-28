@@ -24,7 +24,7 @@ revert:
 
 repomix:
     rm -f repomix-output.xml
-    npx repomix . --style xml
+    npx repomix . --style xml --ignore "lib/**"
 
 clean:
     rm -rf slither_results.json corpus crytic-export cache out
